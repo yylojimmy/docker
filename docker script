@@ -1,0 +1,32 @@
+
+--- use own network mynet and with fix given ip
+docker run -d -p 9876:9876 -v /Users/jimmy/Documents/docker/rocketmq/data/namesrv/logs:/root/logs -v /Users/jimmy/Documents/docker/rocketmq/data/namesrv/store:/root/store --name rmqnamesrv -e "MAX_POSSIBLE_HEAP=100000000" --network=mynet --ip 172.18.12.2 rocketmqinc/rocketmq:latest sh mqnamesrv
+
+--- use own network mynet and with fix given ip
+docker run -d -p 10911:10911 -p 10909:10909 -v /Users/jimmy/Documents/docker/rocketmq/data/broker/logs:/root/logs -v /Users/jimmy/Documents/docker/rocketmq/data/broker/store:/root/store --name rmqbroker --link rmqnamesrv:namesrv -e "NAMESRV_ADDR=namesrv:9876" -e "MAX_POSSIBLE_HEAP=200000000" --network=mynet --ip 172.18.12.3 rocketmqinc/rocketmq:latest sh mqbroker
+
+--- use own network mynet and with fix given ip
+docker run -e "JAVA_OPTS=-Drocketmq.namesrv.addr=172.18.12.2:9876 -Dcom.rocketmq.sendMessageWithVIPChannel=false" -p 8080:8080 -t --network=mynet --ip 172.18.12.4  styletang/rocketmq-console-ng
+
+
+
+
+
+
+docker run -d -p 9876:9876 -v /Users/jimmy/Documents/docker/rocketmq/data/namesrv/logs:/root/logs -v /Users/jimmy/Documents/docker/rocketmq/data/namesrv/store:/root/store --name rmqnamesrv -e "MAX_POSSIBLE_HEAP=100000000"  rocketmqinc/rocketmq:latest sh mqnamesrv
+
+docker run -d -p 10911:10911 -p 10909:10909 -v /Users/jimmy/Documents/docker/rocketmq/data/broker/logs:/root/logs -v /Users/jimmy/Documents/docker/rocketmq/data/broker/store:/root/store --name rmqbroker --link rmqnamesrv:namesrv -e "NAMESRV_ADDR=namesrv:9876" -e "MAX_POSSIBLE_HEAP=200000000"  rocketmqinc/rocketmq:latest sh mqbroker
+
+docker run -e "JAVA_OPTS=-Drocketmq.namesrv.addr=namesrv:9876 -Dcom.rocketmq.sendMessageWithVIPChannel=false" -p 8081:8080 -t --link rmqnamesrv:namesrv styletang/rocketmq-console-ng
+
+docker run -dit -p 8080:8080 --name tomcat --restart=always -v /Users/jimmy/Documents/docker/tomcat/tomcat-users.xml:/usr/local/tomcat/conf/tomcat-users.xml  -v /Users/jimmy/Documents/docker/tomcat/webapps:/usr/local/tomcat/webapps -v /Users/jimmy/Documents/docker/tomcat/manager.xml:/usr/local/tomcat/conf/Catalina/localhost/manager.xml --link rmqnamesrv:namesrv tomcat:latest
+
+---- my self tomcat image
+docker run -dit -p 8080:8080 --name mytomcat --restart=always  -v /Users/jimmy/Documents/docker/tomcat/webapps:/usr/local/tomcat/webapps --link rmqnamesrv:namesrv yylo/tomcat:v1
+
+docker run -p 3306:3306 --name mysql \
+-v /Users/jimmy/Documents/docker/mysql/logs:/var/log/mysql \
+-v /Users/jimmy/Documents/docker/mysql/data:/var/lib/mysql \
+-v /Users/jimmy/Documents/docker/conf/my.cnf:/etc/mysql/my.cnf:rw
+-e MYSQL_ROOT_PASSWORD=123456 \
+-d mysql:latest
